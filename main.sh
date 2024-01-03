@@ -2,13 +2,11 @@
 
 
 function set_aws_profile() {
-    export AWS_PROFILE=$1
-    echo "AWS profile set to '$AWS_PROFILE'"
+    export AWS_PROFILE=$1    
 }
 
 function list_aws_profiles() {
-    echo "Available AWS Profiles:"
-    grep '\[' ~/.aws/credentials | sed 's/\[\|\]//g'
+    grep '\[' ~/.aws/credentials | sed 's/\[\|\]//g'    
 }
 
 function delete_aws_profile() {
@@ -38,7 +36,8 @@ function show_aws_profile_details() {
     fi
 
     echo "Details for AWS profile '$profile':"
-    
+    echo "------------------------------------------"
+
     # Extract and display details from credentials file
     local access_key=$(grep -A 2 "\[$profile\]" $credentials_file | grep 'aws_access_key_id' | awk '{print $3}')
     local secret_key=$(grep -A 2 "\[$profile\]" $credentials_file | grep 'aws_secret_access_key' | awk '{print $3}')
@@ -61,8 +60,9 @@ function show_aws_profile_details() {
 function awspm() {
     case "$1" in
     set)
-        if [ -n "$2" ]; then
-            export AWS_PROFILE=$2
+        echo "Setting AWS Profile"
+        if [ -n "$2" ]; then            
+            set_aws_profile "$2"
             echo "AWS profile set to '$AWS_PROFILE'"
         else
             echo "Usage: awscm set [profile_name]"
@@ -70,7 +70,8 @@ function awspm() {
         ;;
     list)
         echo "Available AWS Profiles:"
-        grep '\[' ~/.aws/credentials | sed 's/\[\|\]//g'
+        echo "------------------------"
+        list_aws_profiles
         ;;
     delete)
         echo "Deleting AWS Profile"
@@ -81,12 +82,28 @@ function awspm() {
             echo "Usage: awscm delete [profile_name]"
         fi
         ;;
-     show)
+    show)
         show_aws_profile_details "$2"
         ;;
+    help)
+        echo "-------------------------"
+        echo "AWS PROFILE MANAGER"
+        echo "-------------------------\n"
+        echo "Usage: awscm {set|show|list|delete} [profile_name]\n"
+        
+        echo "list:\t list all available AWS profiles"
+        echo "set:\t set the AWS profile to be used"
+        echo "show:\t show details of an AWS profile"
+        echo "delete:\t delete an AWS profile"
+        ;; 
+
 
     *)
-        echo "Usage: awscm {set|show|list|delete} [profile_name]"
+        echo "-------------------------"
+        echo "AWS PROFILE MANAGER"
+        echo "-------------------------\n"
+        echo "Usage: awscm {help|set|show|list|delete} [profile_name]"
+        
         ;;
     esac
 }
