@@ -22,5 +22,5 @@ fi
 # Make the main script executable
 chmod +x main.sh
 
-# Move the main script to /usr/local/bin
-mv main.sh /usr/local/bin/awspm
+# Copy the main script to /usr/local/bin
+cp main.sh /usr/local/bin/awspm

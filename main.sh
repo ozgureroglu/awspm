@@ -89,12 +89,12 @@ function awspm() {
         echo "-------------------------"
         echo "AWS PROFILE MANAGER"
         echo "-------------------------\n"
-        echo "Usage: awscm {set|show|list|delete} [profile_name]\n"
+        echo -e "Usage: awscm {set|show|list|delete} [profile_name]\n"
         
-        echo "list:\t list all available AWS profiles"
-        echo "set:\t set the AWS profile to be used"
-        echo "show:\t show details of an AWS profile"
-        echo "delete:\t delete an AWS profile"
+        echo -e "list:\t list all available AWS profiles"
+        echo -e "set:\t set the AWS profile to be used"
+        echo -e "show:\t show details of an AWS profile"
+        echo -e "delete:\t delete an AWS profile"
         ;; 
 
 
@@ -102,7 +102,7 @@ function awspm() {
         echo "-------------------------"
         echo "AWS PROFILE MANAGER"
         echo "-------------------------\n"
-        echo "Usage: awscm {help|set|show|list|delete} [profile_name]"
+        echo -e "\nUsage: awscm {help|set|show|list|delete} [profile_name]"
         
         ;;
     esac
