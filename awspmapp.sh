@@ -1,22 +1,26 @@
 #!/bin/zsh
 
 # Version number
-VERSION="0.0.6"
+VERSION="0.0.16"
 
 # function to show the version
 function show_version() {
-    echo "awspm version $VERSION"
+    echo "awspmapp version $VERSION"
 }
 
 
 function set_aws_profile() {
-    # If there is not .awspm folder create it and 
-    if [ ! -d ~/.awspm ]; then
-        mkdir ~/.awspm
+    # If there is not .awspmapp folder create it and 
+    if [ ! -d ~/.awspmapp ]; then
+        mkdir ~/.awspmapp
     fi
-    # save the selected one to a .current_profile file in the .awspm folder
-    echo $1 > ~/.awspm/current_profile
-    export AWS_PROFILE=$1    
+    # save the selected one to a .current_profile file in the .awspmapp folder
+    echo $1 > ~/.awspmapp/current_profile
+    # export the selected profile to whole shells so that it can be used in other scripts
+    if [ "$BASH_SOURCE" = "$0" ]; then
+        export AWS_PROFILE=$1    
+    fi
+    
 }
 
 function list_aws_profiles() {
@@ -110,7 +114,7 @@ function show_aws_profile_details() {
 
 
 
-function awspm() {
+function awspmapp() {
     case "$1" in
     set)
         echo "Setting AWS Profile"
@@ -152,7 +156,7 @@ function awspm() {
         echo -e "list:\t\t List all available AWS profiles"
         echo -e "set:\t\t Set the AWS profile to be used"
         echo -e "show:\t\t Show details of an AWS profile"  
-        echo -e "delete:\t\t Selete an AWS profile"
+        echo -e "delete:\t\t Delete an AWS profile"
         echo -e "version:\t\t Show the version of the tool"
         ;; 
 
@@ -160,23 +164,22 @@ function awspm() {
 }
 
 
-# When the awspm script is run, check if the user has a .awspm folder in their home directory
+# When the awspmapp script is run, check if the user has a .awspmapp folder in their home directory
 # If not, create it, if it exists, check if it has a current_profile file in it
 # If it does, set the AWS_PROFILE to the value in the file
 # If it doesn't, set the AWS_PROFILE to the default profile
-if [ -d ~/.awspm ]; then
-    if [ -f ~/.awspm/current_profile ]; then
-        export AWS_PROFILE=$(cat ~/.awspm/current_profile)
+if [ -d ~/.awspmapp ]; then
+    if [ -f ~/.awspmapp/current_profile ]; then
+        export AWS_PROFILE=$(cat ~/.awspmapp/current_profile)
     else
-        touch ~/.awspm/current_profile
+        touch ~/.awspmapp/current_profile
         export AWS_PROFILE=default
     fi
 else
-    mkdir ~/.awspm
-    touch ~/.awspm/current_profile
-    echo "default" > ~/.awspm/current_profile
+    mkdir ~/.awspmapp
+    touch ~/.awspmapp/current_profile
+    echo "default" > ~/.awspmapp/current_profile
     export AWS_PROFILE=default
 fi
 
-
-awspm "$@"
+awspmapp "$@"
