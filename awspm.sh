@@ -1,12 +1,48 @@
-#!/bin/bash
+#!/bin/zsh
+
+# Version number
+VERSION="0.0.2"
+
+# function to show the version
+function show_version() {
+    echo "awspm version $VERSION"
+}
 
 
 function set_aws_profile() {
+    # If there is not .awspm folder create it and 
+    if [ ! -d ~/.awspm ]; then
+        mkdir ~/.awspm
+    fi
+    # save the selected one to a .current_profile file in the .awspm folder
+    echo $1 > ~/.awspm/current_profile
     export AWS_PROFILE=$1    
 }
 
 function list_aws_profiles() {
-    grep '\[' ~/.aws/credentials | sed 's/\[\|\]//g'    
+    # Check the AWS_PROFILE to find the current profile and highlight it and put a star next to it
+    local current_profile=$AWS_PROFILE
+    echo "Current Profile: $current_profile"
+    
+    grep '\[' ~/.aws/credentials | sed 's/\[\|\]//g' | while read -r profile; do
+        echo $profile
+        echo "Current: $current_profile"
+    done
+
+    # # echo "$profiles"
+    # for profile in $profiles; do
+    #     # Remove [ and remove ] from the profile name
+    #     profile_name=$(echo $profile | tr -d '[]')
+    #     echo -e "$profile_name"
+    #     echo -e "$current_profile"
+
+    #     # if [ "$profile_name" = "$current_profile" ]; then
+    #     #     echo "ooo $profile_name"
+    #     # else
+    #     #     echo "$profile_name"
+    #     # fi
+    # done
+    # grep '\[' ~/.aws/credentials | sed 's/\[\|\]//g'    
 }
 
 function delete_aws_profile() {
@@ -85,16 +121,20 @@ function awspm() {
     show)
         show_aws_profile_details "$2"
         ;;
+    version)
+        show_version
+        ;;
     help)
         echo "-------------------------"
         echo "AWS PROFILE MANAGER"
         echo "-------------------------\n"
         echo -e "Usage: awscm {set|show|list|delete} [profile_name]\n"
         
-        echo -e "list:\t list all available AWS profiles"
-        echo -e "set:\t set the AWS profile to be used"
-        echo -e "show:\t show details of an AWS profile"
-        echo -e "delete:\t delete an AWS profile"
+        echo "list:\t\t list all available AWS profiles"
+        echo -e "set:\t\t set the AWS profile to be used"
+        echo -e "show:\t\t show details of an AWS profile"  
+        echo -e "delete:\t\t delete an AWS profile"
+        echo -e "version:\t\t show the version of the tool"
         ;; 
 
 
