@@ -1,7 +1,7 @@
 #!/bin/zsh
 
 # Version number
-VERSION="0.0.2"
+VERSION="0.0.6"
 
 # function to show the version
 function show_version() {
@@ -23,10 +23,27 @@ function list_aws_profiles() {
     # Check the AWS_PROFILE to find the current profile and highlight it and put a star next to it
     local current_profile=$AWS_PROFILE
     echo "Current Profile: $current_profile"
+    echo "------------------------"
+
     
     grep '\[' ~/.aws/credentials | sed 's/\[\|\]//g' | while read -r profile; do
-        echo $profile
-        echo "Current: $current_profile"
+        # echo $profile
+        #remove [ and ] from the profile name 
+        profile_name=$(echo $profile | tr -d '[]')
+        
+        # echo "Current: $current_profile"
+        #compare the profile name with the current profile and add a star next to profile name if they are the same
+        if [ "$profile_name" = "$current_profile" ]; then
+            # change color to green
+            printf "\033[0;32m"
+            printf "%s  *" $profile_name
+            # reset color
+            printf "\033[0m"
+        else
+            printf "%s" $profile_name
+        fi
+        printf "\n"
+
     done
 
     # # echo "$profiles"
@@ -124,28 +141,42 @@ function awspm() {
     version)
         show_version
         ;;
-    help)
+        # for help or with empty argument
+    help | "")
         echo "-------------------------"
         echo "AWS PROFILE MANAGER"
         echo "-------------------------\n"
-        echo -e "Usage: awscm {set|show|list|delete} [profile_name]\n"
+        echo -e "Usage: awscm {command} [profile_name]\n"
         
-        echo "list:\t\t list all available AWS profiles"
-        echo -e "set:\t\t set the AWS profile to be used"
-        echo -e "show:\t\t show details of an AWS profile"  
-        echo -e "delete:\t\t delete an AWS profile"
-        echo -e "version:\t\t show the version of the tool"
+        echo "Commands:"
+        echo -e "list:\t\t List all available AWS profiles"
+        echo -e "set:\t\t Set the AWS profile to be used"
+        echo -e "show:\t\t Show details of an AWS profile"  
+        echo -e "delete:\t\t Selete an AWS profile"
+        echo -e "version:\t\t Show the version of the tool"
         ;; 
 
-
-    *)
-        echo "-------------------------"
-        echo "AWS PROFILE MANAGER"
-        echo "-------------------------\n"
-        echo -e "\nUsage: awscm {help|set|show|list|delete} [profile_name]"
-        
-        ;;
     esac
 }
+
+
+# When the awspm script is run, check if the user has a .awspm folder in their home directory
+# If not, create it, if it exists, check if it has a current_profile file in it
+# If it does, set the AWS_PROFILE to the value in the file
+# If it doesn't, set the AWS_PROFILE to the default profile
+if [ -d ~/.awspm ]; then
+    if [ -f ~/.awspm/current_profile ]; then
+        export AWS_PROFILE=$(cat ~/.awspm/current_profile)
+    else
+        touch ~/.awspm/current_profile
+        export AWS_PROFILE=default
+    fi
+else
+    mkdir ~/.awspm
+    touch ~/.awspm/current_profile
+    echo "default" > ~/.awspm/current_profile
+    export AWS_PROFILE=default
+fi
+
 
 awspm "$@"
