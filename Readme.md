@@ -10,7 +10,14 @@ To install awspm, you need to have root access. Run the following command:
 sudo ./install.sh
 ```
 
-This will make the main script executable and move it to `/usr/local/bin`, allowing you to run awspm from anywhere.
+This will make the main script executable and move it to `/usr/local/bin`, allowing you to run awspm from any in your computer.
+
+```
+source .zshrc
+or 
+source .bashrc
+```
+
 
 ## Usage
 After installation, you can use the awspm command to manage your AWS profiles.

@@ -1,26 +1,45 @@
 #!/bin/zsh
 
 # Version number
-VERSION="0.0.16"
+VERSION="0.0.24"
 
 # function to show the version
 function show_version() {
-    echo "awspmapp version $VERSION"
+    echo "awspm version $VERSION"
 }
 
 
-function set_aws_profile() {
-    # If there is not .awspmapp folder create it and 
-    if [ ! -d ~/.awspmapp ]; then
-        mkdir ~/.awspmapp
-    fi
-    # save the selected one to a .current_profile file in the .awspmapp folder
-    echo $1 > ~/.awspmapp/current_profile
-    # export the selected profile to whole shells so that it can be used in other scripts
-    if [ "$BASH_SOURCE" = "$0" ]; then
-        export AWS_PROFILE=$1    
+function work_with_profile() {
+    local profile_name=$1
+    echo "Opening new terminal with AWS Profile: $profile_name"
+
+    # If there is not .awspm folder create it
+    if [ ! -d ~/.awspm ]; then
+        echo "Creating ~/.awspm folder"
+        mkdir ~/.awspm
     fi
     
+    # save the selected one to a .current_profile file in the .awspm folder
+    echo $profile_name > ~/.awspm/current_profile
+    
+    # Create a temporary script that will set up the environment
+    cat > ~/.awspm/temp_profile_setup.sh << EOF
+#!/bin/sh
+export AWS_PROFILE=$profile_name
+export PS1="AWSPM-$profile_name $ "
+exec $SHELL
+EOF
+    
+    chmod +x ~/.awspm/temp_profile_setup.sh
+    
+    # Open a new terminal with the profile setup
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        # macOS
+        open -a Terminal ~/.awspm/temp_profile_setup.sh
+    else
+        # Linux (assuming x-terminal-emulator is available)
+        x-terminal-emulator -e ~/.awspm/temp_profile_setup.sh
+    fi
 }
 
 function list_aws_profiles() {
@@ -29,14 +48,10 @@ function list_aws_profiles() {
     echo "Current Profile: $current_profile"
     echo "------------------------"
 
-    
-    grep '\[' ~/.aws/credentials | sed 's/\[\|\]//g' | while read -r profile; do
-        # echo $profile
-        #remove [ and ] from the profile name 
+    # Use grep to find profile names, exclude commented lines (starting with ';'), and remove brackets
+    grep '^\[' ~/.aws/credentials | grep -v '^;' | sed 's/\[\|\]//g' | while read -r profile; do
         profile_name=$(echo $profile | tr -d '[]')
         
-        # echo "Current: $current_profile"
-        #compare the profile name with the current profile and add a star next to profile name if they are the same
         if [ "$profile_name" = "$current_profile" ]; then
             # change color to green
             printf "\033[0;32m"
@@ -47,23 +62,7 @@ function list_aws_profiles() {
             printf "%s" $profile_name
         fi
         printf "\n"
-
-    done
-
-    # # echo "$profiles"
-    # for profile in $profiles; do
-    #     # Remove [ and remove ] from the profile name
-    #     profile_name=$(echo $profile | tr -d '[]')
-    #     echo -e "$profile_name"
-    #     echo -e "$current_profile"
-
-    #     # if [ "$profile_name" = "$current_profile" ]; then
-    #     #     echo "ooo $profile_name"
-    #     # else
-    #     #     echo "$profile_name"
-    #     # fi
-    # done
-    # grep '\[' ~/.aws/credentials | sed 's/\[\|\]//g'    
+    done 
 }
 
 function delete_aws_profile() {
@@ -114,15 +113,13 @@ function show_aws_profile_details() {
 
 
 
-function awspmapp() {
+function awspm() {
     case "$1" in
-    set)
-        echo "Setting AWS Profile"
+    work)
         if [ -n "$2" ]; then            
-            set_aws_profile "$2"
-            echo "AWS profile set to '$AWS_PROFILE'"
+            work_with_profile "$2"
         else
-            echo "Usage: awscm set [profile_name]"
+            echo "Usage: awspm work [profile_name]"
         fi
         ;;
     list)
@@ -136,7 +133,7 @@ function awspmapp() {
             sed -i "/\[$2\]/,/^$/d" ~/.aws/credentials
             echo "AWS profile '$2' deleted"
         else
-            echo "Usage: awscm delete [profile_name]"
+            echo "Usage: awspm delete [profile_name]"
         fi
         ;;
     show)
@@ -148,38 +145,38 @@ function awspmapp() {
         # for help or with empty argument
     help | "")
         echo "-------------------------"
-        echo "AWS PROFILE MANAGER"
+        echo "AWS PROFILE MANAGER (AWSPM)"
         echo "-------------------------\n"
-        echo -e "Usage: awscm {command} [profile_name]\n"
+        echo -e "Usage: awspm {command} [profile_name]\n"
         
         echo "Commands:"
         echo -e "list:\t\t List all available AWS profiles"
-        echo -e "set:\t\t Set the AWS profile to be used"
+        echo -e "work:\t\t Open new terminal with specified AWS profile"
         echo -e "show:\t\t Show details of an AWS profile"  
         echo -e "delete:\t\t Delete an AWS profile"
-        echo -e "version:\t\t Show the version of the tool"
+        echo -e "version:\t Show the version of the tool"
         ;; 
 
     esac
 }
 
 
-# When the awspmapp script is run, check if the user has a .awspmapp folder in their home directory
+# When the awspm script is run, check if the user has a .awspm folder in their home directory
 # If not, create it, if it exists, check if it has a current_profile file in it
 # If it does, set the AWS_PROFILE to the value in the file
 # If it doesn't, set the AWS_PROFILE to the default profile
-if [ -d ~/.awspmapp ]; then
-    if [ -f ~/.awspmapp/current_profile ]; then
-        export AWS_PROFILE=$(cat ~/.awspmapp/current_profile)
+if [ -d ~/.awspm ]; then
+    if [ -f ~/.awspm/current_profile ]; then
+        export AWS_PROFILE=$(cat ~/.awspm/current_profile)
     else
-        touch ~/.awspmapp/current_profile
+        touch ~/.awspm/current_profile
         export AWS_PROFILE=default
     fi
 else
-    mkdir ~/.awspmapp
-    touch ~/.awspmapp/current_profile
-    echo "default" > ~/.awspmapp/current_profile
+    mkdir ~/.awspm
+    touch ~/.awspm/current_profile
+    echo "default" > ~/.awspm/current_profile
     export AWS_PROFILE=default
 fi
 
-awspmapp "$@"
+awspm "$@"
